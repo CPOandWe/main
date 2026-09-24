@@ -9,7 +9,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS roles_name_key ON roles (name);
 INSERT INTO
     roles (name)
 VALUES
-    ('user') ON CONFLICT (name) DO NOTHING;
+    ('user'),
+    ('moderator'),
+    ('admin') ON CONFLICT (name) DO NOTHING;
 
 CREATE TABLE
     IF NOT EXISTS users (
@@ -21,6 +23,19 @@ CREATE TABLE
 
 ALTER TABLE users
 ADD COLUMN IF NOT EXISTS username VARCHAR NOT NULL DEFAULT '';
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- default admin (dev): admin@readness.local / admin12345 -- change the password after first login
+INSERT INTO
+    users (username, email, password_hash, role_id)
+VALUES
+    (
+        'admin',
+        'admin@readness.local',
+        crypt ('admin12345', gen_salt ('bf')),
+        (SELECT role_id FROM roles WHERE name = 'admin')
+    ) ON CONFLICT (email) DO NOTHING;
 
 CREATE TABLE
     IF NOT EXISTS refresh_tokens (
