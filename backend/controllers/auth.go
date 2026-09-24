@@ -5,6 +5,8 @@ import (
 	"backend/utils"
 	"errors"
 	"log"
+	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -20,6 +22,16 @@ type AuthController struct {
 
 func NewAuthController(pool *pgxpool.Pool) *AuthController {
 	return &AuthController{pool: pool}
+}
+
+const (
+	accessCookie  = "access_token"
+	refreshCookie = "refresh_token"
+)
+
+func setCookie(c *gin.Context, name, value, path string, ttl time.Duration) {
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie(name, value, int(ttl.Seconds()), path, "", os.Getenv("COOKIE_SECURE") != "false", true)
 }
 
 var validate = validator.New(validator.WithRequiredStructEnabled())
@@ -79,12 +91,12 @@ func (ctrl *AuthController) SignUp(c *gin.Context) {
 }
 
 // @Summary Вход
-// @Description Вход пользователя по почте и паролю, выдача токенов
+// @Description Вход пользователя по почте и паролю
 // @Tags Auth
 // @Accept json
 // @Produce json
 // @Param request body models.LoginBody true "Данные для входа"
-// @Success 200 {object} models.TokenResponse
+// @Success 204 "Токены установлены в cookie"
 // @Failure 400 {object} models.ErrorResponse "Invalid request or validation error"
 // @Failure 401 {object} models.ErrorResponse "Invalid credentials"
 // @Router /auth/login [post]
@@ -141,34 +153,28 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, models.TokenResponse{AccessToken: accessToken, RefreshToken: refreshToken})
+	setCookie(c, accessCookie, accessToken, "/", utils.AccessTokenTTL)
+	setCookie(c, refreshCookie, refreshToken, "/auth", utils.RefreshTokenTTL)
+	c.Status(204)
 }
 
 // @Summary Обновление токена
-// @Description Выдаёт новый access-токен по refresh-токену
+// @Description Выдаёт новый access-токен (в cookie) по refresh-токену из cookie
 // @Tags Auth
-// @Accept json
 // @Produce json
-// @Param request body models.RefreshBody true "Refresh-токен"
-// @Success 200 {object} models.AccessTokenResponse
+// @Success 204 "Новый access-токен установлен в cookie"
 // @Failure 401 {object} models.ErrorResponse "Invalid or expired refresh token"
 // @Router /auth/refresh [post]
 func (ctrl *AuthController) Refresh(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	var body models.RefreshBody
-
-	if err := c.BindJSON(&body); err != nil {
-		c.JSON(400, gin.H{"error": "invalid request"})
+	refreshToken, err := c.Cookie(refreshCookie)
+	if err != nil {
+		c.JSON(401, models.ErrorResponse{Message: "Invalid or expired refresh token"})
 		return
 	}
 
-	if err := validate.Struct(body); err != nil {
-		c.JSON(400, gin.H{"errors": utils.FormatValidationError(err)})
-		return
-	}
-
-	claims, err := utils.VerifyToken(body.RefreshToken, utils.TokenTypeRefresh)
+	claims, err := utils.VerifyToken(refreshToken, utils.TokenTypeRefresh)
 	if err != nil {
 		c.JSON(401, models.ErrorResponse{Message: "Invalid or expired refresh token"})
 		return
@@ -177,7 +183,7 @@ func (ctrl *AuthController) Refresh(c *gin.Context) {
 	var exists bool
 	err = ctrl.pool.QueryRow(ctx,
 		`SELECT EXISTS (SELECT 1 FROM refresh_tokens WHERE token_hash = $1 AND expires_at > now())`,
-		utils.HashToken(body.RefreshToken),
+		utils.HashToken(refreshToken),
 	).Scan(&exists)
 	if err != nil {
 		log.Println(err)
@@ -185,9 +191,6 @@ func (ctrl *AuthController) Refresh(c *gin.Context) {
 		return
 	}
 
-	// ponytail: DB row (not just JWT signature) is the source of truth, so a
-	// logged-out/revoked token is rejected even before its JWT expiry hits.
-	// Not rotated: the response contract only returns a new access_token.
 	if !exists {
 		c.JSON(401, models.ErrorResponse{Message: "Invalid or expired refresh token"})
 		return
@@ -200,5 +203,27 @@ func (ctrl *AuthController) Refresh(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, models.AccessTokenResponse{AccessToken: accessToken})
+	setCookie(c, accessCookie, accessToken, "/", utils.AccessTokenTTL)
+	c.Status(204)
+}
+
+// @Summary Выход
+// @Description Удаляет refresh-токен из БД и очищает cookie
+// @Tags Auth
+// @Success 204 "Cookie очищены"
+// @Router /auth/logout [post]
+func (ctrl *AuthController) Logout(c *gin.Context) {
+	if refreshToken, err := c.Cookie(refreshCookie); err == nil {
+		if _, err := ctrl.pool.Exec(c.Request.Context(),
+			`DELETE FROM refresh_tokens WHERE token_hash = $1`, utils.HashToken(refreshToken),
+		); err != nil {
+			log.Println(err)
+			c.JSON(500, models.ErrorResponse{Message: "Failed to sign out, try again~"})
+			return
+		}
+	}
+
+	setCookie(c, accessCookie, "", "/", -time.Second)
+	setCookie(c, refreshCookie, "", "/auth", -time.Second)
+	c.Status(204)
 }

@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/auth/login": {
             "post": {
-                "description": "Вход пользователя по почте и паролю, выдача токенов",
+                "description": "Вход пользователя по почте и паролю",
                 "consumes": [
                     "application/json"
                 ],
@@ -40,11 +40,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.TokenResponse"
-                        }
+                    "204": {
+                        "description": "Токены установлены в cookie"
                     },
                     "400": {
                         "description": "Invalid request or validation error",
@@ -61,12 +58,23 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/logout": {
+            "post": {
+                "description": "Удаляет refresh-токен из БД и очищает cookie",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Выход",
+                "responses": {
+                    "204": {
+                        "description": "Cookie очищены"
+                    }
+                }
+            }
+        },
         "/auth/refresh": {
             "post": {
-                "description": "Выдаёт новый access-токен по refresh-токену",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Выдаёт новый access-токен (в cookie) по refresh-токену из cookie",
                 "produces": [
                     "application/json"
                 ],
@@ -74,23 +82,9 @@ const docTemplate = `{
                     "Auth"
                 ],
                 "summary": "Обновление токена",
-                "parameters": [
-                    {
-                        "description": "Refresh-токен",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.RefreshBody"
-                        }
-                    }
-                ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.AccessTokenResponse"
-                        }
+                    "204": {
+                        "description": "Новый access-токен установлен в cookie"
                     },
                     "401": {
                         "description": "Invalid or expired refresh token",
@@ -143,14 +137,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "models.AccessTokenResponse": {
-            "type": "object",
-            "properties": {
-                "access_token": {
-                    "type": "string"
-                }
-            }
-        },
         "models.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -180,17 +166,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.RefreshBody": {
-            "type": "object",
-            "required": [
-                "refresh_token"
-            ],
-            "properties": {
-                "refresh_token": {
-                    "type": "string"
-                }
-            }
-        },
         "models.SignUpBody": {
             "type": "object",
             "required": [
@@ -215,17 +190,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "user_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.TokenResponse": {
-            "type": "object",
-            "properties": {
-                "access_token": {
-                    "type": "string"
-                },
-                "refresh_token": {
                     "type": "string"
                 }
             }

@@ -1,10 +1,5 @@
 basePath: /
 definitions:
-  models.AccessTokenResponse:
-    properties:
-      access_token:
-        type: string
-    type: object
   models.ErrorResponse:
     properties:
       errors:
@@ -23,13 +18,6 @@ definitions:
     required:
     - email
     - password
-    type: object
-  models.RefreshBody:
-    properties:
-      refresh_token:
-        type: string
-    required:
-    - refresh_token
     type: object
   models.SignUpBody:
     properties:
@@ -50,13 +38,6 @@ definitions:
       user_id:
         type: string
     type: object
-  models.TokenResponse:
-    properties:
-      access_token:
-        type: string
-      refresh_token:
-        type: string
-    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -67,7 +48,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Вход пользователя по почте и паролю, выдача токенов
+      description: Вход пользователя по почте и паролю
       parameters:
       - description: Данные для входа
         in: body
@@ -78,10 +59,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.TokenResponse'
+        "204":
+          description: Токены установлены в cookie
         "400":
           description: Invalid request or validation error
           schema:
@@ -93,25 +72,23 @@ paths:
       summary: Вход
       tags:
       - Auth
+  /auth/logout:
+    post:
+      description: Удаляет refresh-токен из БД и очищает cookie
+      responses:
+        "204":
+          description: Cookie очищены
+      summary: Выход
+      tags:
+      - Auth
   /auth/refresh:
     post:
-      consumes:
-      - application/json
-      description: Выдаёт новый access-токен по refresh-токену
-      parameters:
-      - description: Refresh-токен
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/models.RefreshBody'
+      description: Выдаёт новый access-токен (в cookie) по refresh-токену из cookie
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.AccessTokenResponse'
+        "204":
+          description: Новый access-токен установлен в cookie
         "401":
           description: Invalid or expired refresh token
           schema:

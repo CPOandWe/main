@@ -45,11 +45,12 @@ func main() {
 
 	origin := os.Getenv("CORS_ORIGIN")
 	if origin == "" {
-		origin = "*"
+		origin = "http://localhost:3000" // credentials require an explicit origin, not "*"
 	}
 	r.Use(func(c *gin.Context) {
 		h := c.Writer.Header()
 		h.Set("Access-Control-Allow-Origin", origin)
+		h.Set("Access-Control-Allow-Credentials", "true")
 		h.Set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
 		h.Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
 		if c.Request.Method == "OPTIONS" {
@@ -70,6 +71,7 @@ func main() {
 	auth.POST("/signup", authController.SignUp)
 	auth.POST("/login", authController.Login)
 	auth.POST("/refresh", authController.Refresh)
+	auth.POST("/logout", authController.Logout)
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	r.Run()
