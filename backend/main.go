@@ -83,6 +83,15 @@ func main() {
 	r.GET("/books/:id", middleware.OptionalAuth, books.Get)
 	r.GET("/books/:id/cover", middleware.OptionalAuth, books.GetCover)
 	r.PUT("/books/:id/cover", middleware.RequireAuth, books.UploadCover)
+	r.PUT("/books/:id/file", middleware.RequireAuth, books.UploadFile)
+	r.GET("/books/:id/download", middleware.RequireAuth, books.Download)
+	r.GET("/books/:id/status", middleware.OptionalAuth, books.Status)
+	r.POST("/books/:id/publish-request", middleware.RequireAuth, books.RequestPublish)
+
+	moderator := []gin.HandlerFunc{middleware.RequireAuth, middleware.RequireRole(pool, "moderator")}
+	r.POST("/books/:id/publish", append(moderator, books.Publish)...)
+	r.GET("/moderation/requests", append(moderator, books.ModerationList)...)
+	r.PATCH("/moderation/requests/:id", append(moderator, books.ModerationReview)...)
 	r.GET("/users/me/books", middleware.RequireAuth, books.MyBooks)
 	r.POST("/books", middleware.RequireAuth, books.Create)
 	r.PATCH("/books/:id", middleware.RequireAuth, books.Update)

@@ -138,7 +138,7 @@ func (ctrl *BookController) GetCover(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if !b.isPublic && b.uploadedBy != c.GetString(middleware.UserIDKey) && !ctrl.isModerator(c) {
+	if !ctrl.canView(c, b) {
 		c.JSON(404, models.ErrorResponse{Message: "Book not found"})
 		return
 	}

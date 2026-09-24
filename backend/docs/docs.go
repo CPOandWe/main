@@ -475,6 +475,351 @@ const docTemplate = `{
                 }
             }
         },
+        "/books/{id}/download": {
+            "get": {
+                "description": "Только для авторизованных. Видимость как у самой книги",
+                "produces": [
+                    "application/pdf"
+                ],
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Скачивание PDF",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID книги",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Book or file not found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/books/{id}/file": {
+            "put": {
+                "description": "multipart/form-data, поле file: PDF до 50 МБ. Права как у редактирования книги. Заменяет прежний файл",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Загрузка PDF книги",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID книги",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "PDF-файл",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Файл сохранён"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "413": {
+                        "description": "Request Entity Too Large",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/books/{id}/publish": {
+            "post": {
+                "description": "Модератор публикует книгу без заявки (закрывает открытую заявку как approved)",
+                "tags": [
+                    "Book requests"
+                ],
+                "summary": "Прямая публикация",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID книги",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Опубликовано"
+                    },
+                    "400": {
+                        "description": "No PDF uploaded",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/books/{id}/publish-request": {
+            "post": {
+                "description": "Владелец подаёт заявку на публикацию своей книги; PDF уже должен быть загружен",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Book requests"
+                ],
+                "summary": "Заявка на публикацию",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID книги",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.BookStatusResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "No PDF uploaded",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Already published or request already pending",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/books/{id}/status": {
+            "get": {
+                "description": "draft — нет заявки, pending/approved/rejected — по последней заявке (при rejected есть reason), published — книга в каталоге. Видимость как у книги",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Статус книги",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID книги",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.BookStatusResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/moderation/requests": {
+            "get": {
+                "description": "Открытые заявки, старые первыми (только Moderator+)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Book requests"
+                ],
+                "summary": "Заявки на публикацию",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.ModerationRequest"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/moderation/requests/{id}": {
+            "patch": {
+                "description": "approved публикует книгу, rejected требует reason (только Moderator+)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Book requests"
+                ],
+                "summary": "Решение по заявке",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID заявки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Решение",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ReviewRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ReviewRequestResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Pending request not found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/users/me": {
             "get": {
                 "description": "Данные авторизованного пользователя (по access-токену из cookie)",
@@ -628,6 +973,19 @@ const docTemplate = `{
                 }
             }
         },
+        "models.BookStatusResponse": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "description": "set when rejected",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "draft, pending, approved, rejected, published",
+                    "type": "string"
+                }
+            }
+        },
         "models.ChangeRoleBody": {
             "type": "object",
             "required": [
@@ -708,6 +1066,58 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ModerationRequest": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string"
+                },
+                "book_id": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "is_public": {
+                    "type": "boolean"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ReviewRequestBody": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "reason": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "approved",
+                        "rejected"
+                    ]
+                }
+            }
+        },
+        "models.ReviewRequestResponse": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "string"
                 }
             }

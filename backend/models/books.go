@@ -28,3 +28,27 @@ type UpdateBookBody struct {
 type BookIDResponse struct {
 	BookID string `json:"book_id"`
 }
+
+type BookStatusResponse struct {
+	Status string  `json:"status"` // draft, pending, approved, rejected, published
+	Reason *string `json:"reason"` // set when rejected
+}
+
+type ModerationRequest struct {
+	RequestID   string `json:"request_id" db:"request_id"`
+	BookID      string `json:"book_id" db:"book_id"`
+	Title       string `json:"title" db:"title"`
+	Description string `json:"description" db:"description"`
+	IsPublic    bool   `json:"is_public" db:"is_public"`
+	Author      string `json:"author" db:"author"`
+}
+
+type ReviewRequestBody struct {
+	Status string `json:"status" validate:"required,oneof=approved rejected"`
+	Reason string `json:"reason"`
+}
+
+type ReviewRequestResponse struct {
+	Status string `json:"status"`
+	Reason string `json:"reason,omitempty"`
+}

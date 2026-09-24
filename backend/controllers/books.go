@@ -57,6 +57,7 @@ type bookRow struct {
 	uploadedBy string
 	isPublic   bool
 	coverPath  string
+	filePath   string
 }
 
 func (ctrl *BookController) loadBook(c *gin.Context) (id string, b bookRow, ok bool) {
@@ -66,8 +67,8 @@ func (ctrl *BookController) loadBook(c *gin.Context) (id string, b bookRow, ok b
 		return
 	}
 	err := ctrl.pool.QueryRow(c.Request.Context(),
-		`SELECT uploaded_by, is_public, cover_path FROM books WHERE book_id = $1`, id,
-	).Scan(&b.uploadedBy, &b.isPublic, &b.coverPath)
+		`SELECT uploaded_by, is_public, cover_path, file_path FROM books WHERE book_id = $1`, id,
+	).Scan(&b.uploadedBy, &b.isPublic, &b.coverPath, &b.filePath)
 	if errors.Is(err, pgx.ErrNoRows) {
 		c.JSON(404, models.ErrorResponse{Message: "Book not found"})
 		return
@@ -148,7 +149,7 @@ func (ctrl *BookController) Get(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if !b.isPublic && b.uploadedBy != c.GetString(middleware.UserIDKey) && !ctrl.isModerator(c) {
+	if !ctrl.canView(c, b) {
 		c.JSON(404, models.ErrorResponse{Message: "Book not found"})
 		return
 	}
@@ -335,5 +336,6 @@ func (ctrl *BookController) Delete(c *gin.Context) {
 	}
 
 	removeCover(b.coverPath)
+	removeBookFile(b.filePath)
 	c.Status(204)
 }

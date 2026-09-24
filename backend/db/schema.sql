@@ -126,3 +126,8 @@ CREATE TABLE
 
 ALTER TABLE books
 ADD COLUMN IF NOT EXISTS cover_path VARCHAR NOT NULL DEFAULT '';
+
+-- one open request per book
+CREATE UNIQUE INDEX IF NOT EXISTS book_add_requests_pending_key ON book_add_requests (book_id)
+WHERE
+    status = 'pending';
