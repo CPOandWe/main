@@ -883,6 +883,74 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/me/books/{id}": {
+            "post": {
+                "description": "Можно добавить публичную книгу или свою. Повторное добавление ничего не меняет",
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Добавить книгу в библиотеку",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID книги",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Книга в библиотеке"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Идемпотентно: если книги в библиотеке нет, тоже 204",
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Убрать книгу из библиотеки",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID книги",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Книги нет в библиотеке"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Invalid book id",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/users/{id}/role": {
             "patch": {
                 "description": "Меняет роль пользователя (только Admin). Снятие модератора — выдача роли user",

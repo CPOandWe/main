@@ -778,4 +778,50 @@ paths:
       summary: Моя библиотека
       tags:
       - Books
+  /users/me/books/{id}:
+    delete:
+      description: 'Идемпотентно: если книги в библиотеке нет, тоже 204'
+      parameters:
+      - description: ID книги
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Книги нет в библиотеке
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Invalid book id
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Убрать книгу из библиотеки
+      tags:
+      - Books
+    post:
+      description: Можно добавить публичную книгу или свою. Повторное добавление ничего
+        не меняет
+      parameters:
+      - description: ID книги
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Книга в библиотеке
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Добавить книгу в библиотеку
+      tags:
+      - Books
 swagger: "2.0"
