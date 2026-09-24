@@ -36,6 +36,25 @@ func setCookie(c *gin.Context, name, value, path string, ttl time.Duration) {
 
 var validate = validator.New(validator.WithRequiredStructEnabled())
 
+func (ctrl *AuthController) issueTokens(c *gin.Context, userId string) error {
+	accessToken, refreshToken, err := utils.GenerateTokenPair(userId)
+	if err != nil {
+		return err
+	}
+
+	_, err = ctrl.pool.Exec(c.Request.Context(),
+		`INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES ($1, $2, $3)`,
+		userId, utils.HashToken(refreshToken), time.Now().Add(utils.RefreshTokenTTL),
+	)
+	if err != nil {
+		return err
+	}
+
+	setCookie(c, accessCookie, accessToken, "/", utils.AccessTokenTTL)
+	setCookie(c, refreshCookie, refreshToken, "/auth", utils.RefreshTokenTTL)
+	return nil
+}
+
 // @Summary Регистрация
 // @Description Регистрация пользователя по имени, почте и паролю
 // @Tags Auth
@@ -84,6 +103,12 @@ func (ctrl *AuthController) SignUp(c *gin.Context) {
 
 		log.Println(err)
 		c.JSON(500, models.ErrorResponse{Message: "Failed to create user, try again~"})
+		return
+	}
+
+	if err := ctrl.issueTokens(c, userId); err != nil {
+		log.Println(err)
+		c.JSON(500, models.ErrorResponse{Message: "Account created, but sign in failed, log in manually"})
 		return
 	}
 
@@ -136,25 +161,12 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 		return
 	}
 
-	accessToken, refreshToken, err := utils.GenerateTokenPair(userId)
-	if err != nil {
+	if err := ctrl.issueTokens(c, userId); err != nil {
 		log.Println(err)
 		c.JSON(500, models.ErrorResponse{Message: "Failed to sign in, try again~"})
 		return
 	}
 
-	_, err = ctrl.pool.Exec(ctx,
-		`INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES ($1, $2, $3)`,
-		userId, utils.HashToken(refreshToken), time.Now().Add(utils.RefreshTokenTTL),
-	)
-	if err != nil {
-		log.Println(err)
-		c.JSON(500, models.ErrorResponse{Message: "Failed to sign in, try again~"})
-		return
-	}
-
-	setCookie(c, accessCookie, accessToken, "/", utils.AccessTokenTTL)
-	setCookie(c, refreshCookie, refreshToken, "/auth", utils.RefreshTokenTTL)
 	c.Status(204)
 }
 

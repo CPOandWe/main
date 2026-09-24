@@ -23,3 +23,12 @@ func RequireAuth(c *gin.Context) {
 
 	c.AbortWithStatusJSON(401, models.ErrorResponse{Message: "Unauthorized"})
 }
+
+func OptionalAuth(c *gin.Context) {
+	if token, err := c.Cookie("access_token"); err == nil {
+		if claims, err := utils.VerifyToken(token, utils.TokenTypeAccess); err == nil {
+			c.Set(UserIDKey, claims.UserID)
+		}
+	}
+	c.Next()
+}

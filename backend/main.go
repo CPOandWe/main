@@ -78,6 +78,14 @@ func main() {
 	r.GET("/users/me", middleware.RequireAuth, users.Me)
 	r.PATCH("/users/:id/role", middleware.RequireAuth, middleware.RequireRole(pool, "admin"), users.ChangeRole)
 
+	books := controllers.NewBookController(pool)
+	r.GET("/books", books.List)
+	r.GET("/books/:id", middleware.OptionalAuth, books.Get)
+	r.GET("/users/me/books", middleware.RequireAuth, books.MyBooks)
+	r.POST("/books", middleware.RequireAuth, books.Create)
+	r.PATCH("/books/:id", middleware.RequireAuth, books.Update)
+	r.DELETE("/books/:id", middleware.RequireAuth, books.Delete)
+
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	r.Run()
 }

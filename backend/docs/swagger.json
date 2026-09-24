@@ -90,7 +90,7 @@
         },
         "/auth/signup": {
             "post": {
-                "description": "Регистрация пользователя по имени, почте и паролю",
+                "description": "Регистрация пользователя по имени, почте и паролю. Сразу выдаёт токены в HttpOnly cookie, как login",
                 "consumes": [
                     "application/json"
                 ],
@@ -128,6 +128,248 @@
                 }
             }
         },
+        "/books": {
+            "get": {
+                "description": "Публичные книги с фильтрами и поиском по названию, по 20 на страницу",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Список книг",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Поиск по названию",
+                        "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID жанра",
+                        "name": "topic_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID языка",
+                        "name": "language_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID автора",
+                        "name": "author_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Страница, с 1",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Book"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Создаёт непубличную книгу; публикация — через заявку на модерацию",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Создание книги",
+                "parameters": [
+                    {
+                        "description": "Данные книги",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateBookBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.BookIDResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/books/{id}": {
+            "get": {
+                "description": "Публичная книга видна всем, непубличная — только владельцу и модераторам",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Книга",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID книги",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Book"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Владелец или модератор",
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Удаление книги",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID книги",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Удалено"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Владелец может править пока книга не опубликована, модератор — всегда. Меняются только переданные поля",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Редактирование книги",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID книги",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Изменяемые поля",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateBookBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.BookIDResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/users/me": {
             "get": {
                 "description": "Данные авторизованного пользователя (по access-токену из cookie)",
@@ -143,6 +385,43 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.MeResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/me/books": {
+            "get": {
+                "description": "Книги из библиотеки пользователя, опционально по статусу",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Моя библиотека",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Статус",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Book"
+                            }
                         }
                     },
                     "401": {
@@ -215,6 +494,31 @@
         }
     },
     "definitions": {
+        "models.Book": {
+            "type": "object",
+            "properties": {
+                "book_id": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "is_public": {
+                    "type": "boolean"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.BookIDResponse": {
+            "type": "object",
+            "properties": {
+                "book_id": {
+                    "type": "string"
+                }
+            }
+        },
         "models.ChangeRoleBody": {
             "type": "object",
             "required": [
@@ -223,6 +527,33 @@
             "properties": {
                 "role_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "models.CreateBookBody": {
+            "type": "object",
+            "required": [
+                "author_id",
+                "description",
+                "language_id",
+                "published_at",
+                "title"
+            ],
+            "properties": {
+                "author_id": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "language_id": {
+                    "type": "string"
+                },
+                "published_at": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
                 }
             }
         },
@@ -297,6 +628,28 @@
             "properties": {
                 "user_id": {
                     "type": "string"
+                }
+            }
+        },
+        "models.UpdateBookBody": {
+            "type": "object",
+            "properties": {
+                "author_id": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "language_id": {
+                    "type": "string"
+                },
+                "published_at": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string",
+                    "minLength": 1
                 }
             }
         }

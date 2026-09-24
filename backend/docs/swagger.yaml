@@ -1,11 +1,46 @@
 basePath: /
 definitions:
+  models.Book:
+    properties:
+      book_id:
+        type: string
+      description:
+        type: string
+      is_public:
+        type: boolean
+      title:
+        type: string
+    type: object
+  models.BookIDResponse:
+    properties:
+      book_id:
+        type: string
+    type: object
   models.ChangeRoleBody:
     properties:
       role_id:
         type: integer
     required:
     - role_id
+    type: object
+  models.CreateBookBody:
+    properties:
+      author_id:
+        type: string
+      description:
+        type: string
+      language_id:
+        type: string
+      published_at:
+        type: string
+      title:
+        type: string
+    required:
+    - author_id
+    - description
+    - language_id
+    - published_at
+    - title
     type: object
   models.ErrorResponse:
     properties:
@@ -54,6 +89,21 @@ definitions:
   models.SignUpResponse:
     properties:
       user_id:
+        type: string
+    type: object
+  models.UpdateBookBody:
+    properties:
+      author_id:
+        type: string
+      description:
+        minLength: 1
+        type: string
+      language_id:
+        type: string
+      published_at:
+        type: string
+      title:
+        minLength: 1
         type: string
     type: object
 host: localhost:8080
@@ -118,7 +168,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Регистрация пользователя по имени, почте и паролю
+      description: Регистрация пользователя по имени, почте и паролю. Сразу выдаёт
+        токены в HttpOnly cookie, как login
       parameters:
       - description: Данные для регистрации
         in: body
@@ -140,6 +191,167 @@ paths:
       summary: Регистрация
       tags:
       - Auth
+  /books:
+    get:
+      description: Публичные книги с фильтрами и поиском по названию, по 20 на страницу
+      parameters:
+      - description: Поиск по названию
+        in: query
+        name: q
+        type: string
+      - description: ID жанра
+        in: query
+        name: topic_id
+        type: string
+      - description: ID языка
+        in: query
+        name: language_id
+        type: string
+      - description: ID автора
+        in: query
+        name: author_id
+        type: string
+      - description: Страница, с 1
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Book'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Список книг
+      tags:
+      - Books
+    post:
+      consumes:
+      - application/json
+      description: Создаёт непубличную книгу; публикация — через заявку на модерацию
+      parameters:
+      - description: Данные книги
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateBookBody'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.BookIDResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Создание книги
+      tags:
+      - Books
+  /books/{id}:
+    delete:
+      description: Владелец или модератор
+      parameters:
+      - description: ID книги
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Удалено
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Удаление книги
+      tags:
+      - Books
+    get:
+      description: Публичная книга видна всем, непубличная — только владельцу и модераторам
+      parameters:
+      - description: ID книги
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Book'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Книга
+      tags:
+      - Books
+    patch:
+      consumes:
+      - application/json
+      description: Владелец может править пока книга не опубликована, модератор —
+        всегда. Меняются только переданные поля
+      parameters:
+      - description: ID книги
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Изменяемые поля
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateBookBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BookIDResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Редактирование книги
+      tags:
+      - Books
   /users/{id}/role:
     patch:
       consumes:
@@ -197,4 +409,28 @@ paths:
       summary: Текущий пользователь
       tags:
       - Users
+  /users/me/books:
+    get:
+      description: Книги из библиотеки пользователя, опционально по статусу
+      parameters:
+      - description: Статус
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Book'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Моя библиотека
+      tags:
+      - Books
 swagger: "2.0"
