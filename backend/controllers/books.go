@@ -168,28 +168,79 @@ func (ctrl *BookController) Get(c *gin.Context) {
 	c.JSON(200, book)
 }
 
-// @Summary Моя библиотека
-// @Description Книги из библиотеки пользователя, опционально по статусу
+// @Summary Загруженные мной книги
+// @Description Книги, которые загрузил пользователь, со статусом модерации: draft, pending, approved, rejected, published. Фильтр по status
 // @Tags Books
 // @Produce json
-// @Param status query string false "Статус"
-// @Success 200 {array} models.Book
+// @Param status query string false "draft, pending, approved, rejected или published"
+// @Success 200 {array} models.UploadedBook
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 401 {object} models.ErrorResponse
+// @Router /users/me/uploads [get]
+func (ctrl *BookController) UploadedBooks(c *gin.Context) {
+	status := c.Query("status")
+	if validate.Var(status, "omitempty,oneof=draft pending approved rejected published") != nil {
+		c.JSON(400, models.ErrorResponse{Message: "invalid status"})
+		return
+	}
+
+	rows, err := ctrl.pool.Query(c.Request.Context(),
+		`SELECT book_id, title, description, is_public, cover_url, status FROM (
+		   SELECT b.book_id, b.title, b.description, b.is_public,
+		          CASE WHEN b.cover_path <> '' THEN '/books/' || b.book_id::text || '/cover' END AS cover_url,
+		          CASE WHEN b.is_public THEN 'published' ELSE COALESCE(r.status, 'draft') END AS status,
+		          b.uploaded_at
+		   FROM books b
+		   LEFT JOIN LATERAL (SELECT status FROM book_add_requests WHERE book_id = b.book_id ORDER BY created_at DESC LIMIT 1) r ON TRUE
+		   WHERE b.uploaded_by = $1
+		 ) x
+		 WHERE $2::text = '' OR status = $2
+		 ORDER BY uploaded_at DESC, book_id`,
+		c.GetString(middleware.UserIDKey), status)
+	if err != nil {
+		internalErr(c, err)
+		return
+	}
+	books, err := pgx.CollectRows(rows, pgx.RowToStructByName[models.UploadedBook])
+	if err != nil {
+		internalErr(c, err)
+		return
+	}
+
+	c.JSON(200, books)
+}
+
+// @Summary Моя библиотека
+// @Description Книги из библиотеки пользователя, от новых к старым. status — статус чтения (reading, read), null если не задан. Фильтр по status
+// @Tags Books
+// @Produce json
+// @Param status query string false "reading или read"
+// @Success 200 {array} models.LibraryBook
+// @Failure 400 {object} models.ErrorResponse
 // @Failure 401 {object} models.ErrorResponse
 // @Router /users/me/books [get]
 func (ctrl *BookController) MyBooks(c *gin.Context) {
+	status := c.Query("status")
+	if validate.Var(status, "omitempty,oneof=reading read") != nil {
+		c.JSON(400, models.ErrorResponse{Message: "invalid status"})
+		return
+	}
+
 	rows, err := ctrl.pool.Query(c.Request.Context(),
-		`SELECT b.book_id, b.title, b.description, b.is_public, CASE WHEN b.cover_path <> '' THEN '/books/' || b.book_id::text || '/cover' END AS cover_url
+		`SELECT b.book_id, b.title, b.description, b.is_public,
+		        CASE WHEN b.cover_path <> '' THEN '/books/' || b.book_id::text || '/cover' END AS cover_url,
+		        bs.status
 		 FROM user_library ul
 		 JOIN books b USING (book_id)
 		 LEFT JOIN book_status bs ON bs.book_id = b.book_id AND bs.user_id = ul.user_id
 		 WHERE ul.user_id = $1 AND ($2::text = '' OR bs.status = $2)
 		 ORDER BY ul.added_at DESC`,
-		c.GetString(middleware.UserIDKey), c.Query("status"))
+		c.GetString(middleware.UserIDKey), status)
 	if err != nil {
 		internalErr(c, err)
 		return
 	}
-	books, err := pgx.CollectRows(rows, pgx.RowToStructByName[models.Book])
+	books, err := pgx.CollectRows(rows, pgx.RowToStructByName[models.LibraryBook])
 	if err != nil {
 		internalErr(c, err)
 		return

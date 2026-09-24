@@ -100,7 +100,7 @@ CREATE TABLE
     IF NOT EXISTS book_status (
         book_id UUID NOT NULL REFERENCES books (book_id),
         user_id UUID NOT NULL REFERENCES users (user_id),
-        status VARCHAR NOT NULL DEFAULT 'pending',
+        status VARCHAR NOT NULL DEFAULT 'reading',
         PRIMARY KEY (book_id, user_id)
     );
 

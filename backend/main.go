@@ -93,6 +93,8 @@ func main() {
 	r.GET("/moderation/requests", append(moderator, books.ModerationList)...)
 	r.PATCH("/moderation/requests/:id", append(moderator, books.ModerationReview)...)
 	r.GET("/users/me/books", middleware.RequireAuth, books.MyBooks)
+	r.GET("/users/me/uploads", middleware.RequireAuth, books.UploadedBooks)
+	r.PUT("/users/me/books/:id/status", middleware.RequireAuth, books.SetReadingStatus)
 	r.POST("/users/me/books/:id", middleware.RequireAuth, books.AddToLibrary)
 	r.DELETE("/users/me/books/:id", middleware.RequireAuth, books.RemoveFromLibrary)
 	r.POST("/books", middleware.RequireAuth, books.Create)

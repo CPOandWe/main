@@ -63,6 +63,21 @@ definitions:
       message:
         type: string
     type: object
+  models.LibraryBook:
+    properties:
+      book_id:
+        type: string
+      cover_url:
+        type: string
+      description:
+        type: string
+      is_public:
+        type: boolean
+      status:
+        type: string
+      title:
+        type: string
+    type: object
   models.LoginBody:
     properties:
       email:
@@ -98,6 +113,16 @@ definitions:
         type: string
       title:
         type: string
+    type: object
+  models.ReadingStatusBody:
+    properties:
+      status:
+        enum:
+        - reading
+        - read
+        type: string
+    required:
+    - status
     type: object
   models.ReviewRequestBody:
     properties:
@@ -150,6 +175,21 @@ definitions:
         type: string
       title:
         minLength: 1
+        type: string
+    type: object
+  models.UploadedBook:
+    properties:
+      book_id:
+        type: string
+      cover_url:
+        type: string
+      description:
+        type: string
+      is_public:
+        type: boolean
+      status:
+        type: string
+      title:
         type: string
     type: object
 host: localhost:8080
@@ -756,9 +796,10 @@ paths:
       - Users
   /users/me/books:
     get:
-      description: Книги из библиотеки пользователя, опционально по статусу
+      description: Книги из библиотеки пользователя, от новых к старым. status — статус
+        чтения (reading, read), null если не задан. Фильтр по status
       parameters:
-      - description: Статус
+      - description: reading или read
         in: query
         name: status
         type: string
@@ -769,8 +810,12 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.Book'
+              $ref: '#/definitions/models.LibraryBook'
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
@@ -822,6 +867,70 @@ paths:
           schema:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Добавить книгу в библиотеку
+      tags:
+      - Books
+  /users/me/books/{id}/status:
+    put:
+      consumes:
+      - application/json
+      description: Отмечает книгу из библиотеки как reading или read
+      parameters:
+      - description: ID книги
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Статус чтения
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ReadingStatusBody'
+      responses:
+        "204":
+          description: Статус сохранён
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Book is not in the library
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Статус чтения
+      tags:
+      - Books
+  /users/me/uploads:
+    get:
+      description: 'Книги, которые загрузил пользователь, со статусом модерации: draft,
+        pending, approved, rejected, published. Фильтр по status'
+      parameters:
+      - description: draft, pending, approved, rejected или published
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.UploadedBook'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Загруженные мной книги
       tags:
       - Books
 swagger: "2.0"

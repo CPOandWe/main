@@ -52,3 +52,27 @@ type ReviewRequestResponse struct {
 	Status string `json:"status"`
 	Reason string `json:"reason,omitempty"`
 }
+
+// UploadedBook is a book uploaded by the user with its moderation status.
+type UploadedBook struct {
+	BookID      string  `json:"book_id" db:"book_id"`
+	Title       string  `json:"title" db:"title"`
+	Description string  `json:"description" db:"description"`
+	IsPublic    bool    `json:"is_public" db:"is_public"`
+	CoverURL    *string `json:"cover_url" db:"cover_url"`
+	Status      string  `json:"status" db:"status"`
+}
+
+// LibraryBook is a library entry; Status is the reading status (nil until set).
+type LibraryBook struct {
+	BookID      string  `json:"book_id" db:"book_id"`
+	Title       string  `json:"title" db:"title"`
+	Description string  `json:"description" db:"description"`
+	IsPublic    bool    `json:"is_public" db:"is_public"`
+	CoverURL    *string `json:"cover_url" db:"cover_url"`
+	Status      *string `json:"status" db:"status"`
+}
+
+type ReadingStatusBody struct {
+	Status string `json:"status" validate:"required,oneof=reading read"`
+}

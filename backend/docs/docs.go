@@ -848,7 +848,7 @@ const docTemplate = `{
         },
         "/users/me/books": {
             "get": {
-                "description": "Книги из библиотеки пользователя, опционально по статусу",
+                "description": "Книги из библиотеки пользователя, от новых к старым. status — статус чтения (reading, read), null если не задан. Фильтр по status",
                 "produces": [
                     "application/json"
                 ],
@@ -859,7 +859,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Статус",
+                        "description": "reading или read",
                         "name": "status",
                         "in": "query"
                     }
@@ -870,8 +870,14 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Book"
+                                "$ref": "#/definitions/models.LibraryBook"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
                     "401": {
@@ -944,6 +950,102 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Invalid book id",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/me/books/{id}/status": {
+            "put": {
+                "description": "Отмечает книгу из библиотеки как reading или read",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Статус чтения",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID книги",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Статус чтения",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ReadingStatusBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Статус сохранён"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Book is not in the library",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/me/uploads": {
+            "get": {
+                "description": "Книги, которые загрузил пользователь, со статусом модерации: draft, pending, approved, rejected, published. Фильтр по status",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Загруженные мной книги",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "draft, pending, approved, rejected или published",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.UploadedBook"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
@@ -1106,6 +1208,29 @@ const docTemplate = `{
                 }
             }
         },
+        "models.LibraryBook": {
+            "type": "object",
+            "properties": {
+                "book_id": {
+                    "type": "string"
+                },
+                "cover_url": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "is_public": {
+                    "type": "boolean"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "models.LoginBody": {
             "type": "object",
             "required": [
@@ -1158,6 +1283,21 @@ const docTemplate = `{
                 },
                 "title": {
                     "type": "string"
+                }
+            }
+        },
+        "models.ReadingStatusBody": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "reading",
+                        "read"
+                    ]
                 }
             }
         },
@@ -1237,6 +1377,29 @@ const docTemplate = `{
                 "title": {
                     "type": "string",
                     "minLength": 1
+                }
+            }
+        },
+        "models.UploadedBook": {
+            "type": "object",
+            "properties": {
+                "book_id": {
+                    "type": "string"
+                },
+                "cover_url": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "is_public": {
+                    "type": "boolean"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
                 }
             }
         }
