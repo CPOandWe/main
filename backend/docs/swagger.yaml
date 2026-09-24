@@ -168,8 +168,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Регистрация пользователя по имени, почте и паролю. Сразу выдаёт
-        токены в HttpOnly cookie, как login
+      description: Регистрация пользователя по имени, почте и паролю
       parameters:
       - description: Данные для регистрации
         in: body
@@ -350,6 +349,73 @@ paths:
           schema:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Редактирование книги
+      tags:
+      - Books
+  /books/{id}/cover:
+    get:
+      description: Видимость как у самой книги
+      parameters:
+      - description: ID книги
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - image/jpeg
+      - image/png
+      - image/webp
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "404":
+          description: Book or cover not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Обложка книги
+      tags:
+      - Books
+    put:
+      consumes:
+      - multipart/form-data
+      description: 'multipart/form-data, поле cover: JPEG, PNG или WebP до 2 МБ. Права
+        как у редактирования книги. Заменяет прежнюю обложку'
+      parameters:
+      - description: ID книги
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Файл обложки
+        in: formData
+        name: cover
+        required: true
+        type: file
+      responses:
+        "204":
+          description: Обложка сохранена
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "413":
+          description: Request Entity Too Large
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Загрузка обложки
       tags:
       - Books
   /users/{id}/role:

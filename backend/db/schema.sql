@@ -123,3 +123,6 @@ CREATE TABLE
         added_at TIMESTAMP NOT NULL,
         PRIMARY KEY (user_id, book_id)
     );
+
+ALTER TABLE books
+ADD COLUMN IF NOT EXISTS cover_path VARCHAR NOT NULL DEFAULT '';

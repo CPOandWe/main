@@ -81,6 +81,8 @@ func main() {
 	books := controllers.NewBookController(pool)
 	r.GET("/books", books.List)
 	r.GET("/books/:id", middleware.OptionalAuth, books.Get)
+	r.GET("/books/:id/cover", middleware.OptionalAuth, books.GetCover)
+	r.PUT("/books/:id/cover", middleware.RequireAuth, books.UploadCover)
 	r.GET("/users/me/books", middleware.RequireAuth, books.MyBooks)
 	r.POST("/books", middleware.RequireAuth, books.Create)
 	r.PATCH("/books/:id", middleware.RequireAuth, books.Update)

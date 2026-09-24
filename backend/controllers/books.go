@@ -56,6 +56,7 @@ func (ctrl *BookController) isModerator(c *gin.Context) bool {
 type bookRow struct {
 	uploadedBy string
 	isPublic   bool
+	coverPath  string
 }
 
 func (ctrl *BookController) loadBook(c *gin.Context) (id string, b bookRow, ok bool) {
@@ -65,8 +66,8 @@ func (ctrl *BookController) loadBook(c *gin.Context) (id string, b bookRow, ok b
 		return
 	}
 	err := ctrl.pool.QueryRow(c.Request.Context(),
-		`SELECT uploaded_by, is_public FROM books WHERE book_id = $1`, id,
-	).Scan(&b.uploadedBy, &b.isPublic)
+		`SELECT uploaded_by, is_public, cover_path FROM books WHERE book_id = $1`, id,
+	).Scan(&b.uploadedBy, &b.isPublic, &b.coverPath)
 	if errors.Is(err, pgx.ErrNoRows) {
 		c.JSON(404, models.ErrorResponse{Message: "Book not found"})
 		return
@@ -267,13 +268,7 @@ func (ctrl *BookController) Update(c *gin.Context) {
 		return
 	}
 
-	owner := b.uploadedBy == c.GetString(middleware.UserIDKey)
-	if !(owner && !b.isPublic) && !ctrl.isModerator(c) {
-		if !owner && !b.isPublic {
-			c.JSON(404, models.ErrorResponse{Message: "Book not found"})
-			return
-		}
-		c.JSON(403, models.ErrorResponse{Message: "Forbidden"})
+	if !ctrl.authorizeEdit(c, b) {
 		return
 	}
 
@@ -337,5 +332,6 @@ func (ctrl *BookController) Delete(c *gin.Context) {
 		return
 	}
 
+	removeCover(b.coverPath)
 	c.Status(204)
 }
