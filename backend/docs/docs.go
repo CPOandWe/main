@@ -605,6 +605,10 @@ const docTemplate = `{
                 "book_id": {
                     "type": "string"
                 },
+                "cover_url": {
+                    "description": "null when the book has no cover",
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },

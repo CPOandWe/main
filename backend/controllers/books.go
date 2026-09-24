@@ -114,7 +114,7 @@ func (ctrl *BookController) List(c *gin.Context) {
 	}
 
 	rows, err := ctrl.pool.Query(c.Request.Context(),
-		`SELECT b.book_id, b.title, b.description, b.is_public FROM books b
+		`SELECT b.book_id, b.title, b.description, b.is_public, CASE WHEN b.cover_path <> '' THEN '/books/' || b.book_id::text || '/cover' END AS cover_url FROM books b
 		 WHERE b.is_public
 		   AND ($1::text = '' OR b.title ILIKE '%' || $1 || '%')
 		   AND ($2::uuid IS NULL OR b.author_id = $2)
@@ -155,8 +155,10 @@ func (ctrl *BookController) Get(c *gin.Context) {
 
 	var book models.Book
 	err := ctrl.pool.QueryRow(c.Request.Context(),
-		`SELECT book_id, title, description, is_public FROM books WHERE book_id = $1`, id,
-	).Scan(&book.BookID, &book.Title, &book.Description, &book.IsPublic)
+		`SELECT book_id, title, description, is_public,
+		        CASE WHEN cover_path <> '' THEN '/books/' || book_id::text || '/cover' END
+		 FROM books WHERE book_id = $1`, id,
+	).Scan(&book.BookID, &book.Title, &book.Description, &book.IsPublic, &book.CoverURL)
 	if err != nil {
 		internalErr(c, err)
 		return
@@ -175,7 +177,7 @@ func (ctrl *BookController) Get(c *gin.Context) {
 // @Router /users/me/books [get]
 func (ctrl *BookController) MyBooks(c *gin.Context) {
 	rows, err := ctrl.pool.Query(c.Request.Context(),
-		`SELECT b.book_id, b.title, b.description, b.is_public
+		`SELECT b.book_id, b.title, b.description, b.is_public, CASE WHEN b.cover_path <> '' THEN '/books/' || b.book_id::text || '/cover' END AS cover_url
 		 FROM user_library ul
 		 JOIN books b USING (book_id)
 		 LEFT JOIN book_status bs ON bs.book_id = b.book_id AND bs.user_id = ul.user_id

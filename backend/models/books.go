@@ -1,10 +1,11 @@
 package models
 
 type Book struct {
-	BookID      string `json:"book_id" db:"book_id"`
-	Title       string `json:"title" db:"title"`
-	Description string `json:"description" db:"description"`
-	IsPublic    bool   `json:"is_public" db:"is_public"`
+	BookID      string  `json:"book_id" db:"book_id"`
+	Title       string  `json:"title" db:"title"`
+	Description string  `json:"description" db:"description"`
+	IsPublic    bool    `json:"is_public" db:"is_public"`
+	CoverURL    *string `json:"cover_url" db:"cover_url"` // null when the book has no cover
 }
 
 type CreateBookBody struct {
