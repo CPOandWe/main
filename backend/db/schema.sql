@@ -4,12 +4,31 @@ CREATE TABLE
         name VARCHAR NOT NULL
     );
 
+CREATE UNIQUE INDEX IF NOT EXISTS roles_name_key ON roles (name);
+
+INSERT INTO
+    roles (name)
+VALUES
+    ('user') ON CONFLICT (name) DO NOTHING;
+
 CREATE TABLE
     IF NOT EXISTS users (
         user_id UUID PRIMARY KEY DEFAULT uuidv4 (),
         email VARCHAR NOT NULL UNIQUE,
         password_hash VARCHAR NOT NULL,
         role_id SMALLINT NOT NULL REFERENCES roles (role_id)
+    );
+
+ALTER TABLE users
+ADD COLUMN IF NOT EXISTS username VARCHAR NOT NULL DEFAULT '';
+
+CREATE TABLE
+    IF NOT EXISTS refresh_tokens (
+        token_id UUID PRIMARY KEY DEFAULT uuidv4 (),
+        user_id UUID NOT NULL REFERENCES users (user_id),
+        token_hash VARCHAR NOT NULL UNIQUE,
+        expires_at TIMESTAMP NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT now ()
     );
 
 CREATE TABLE
