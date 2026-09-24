@@ -3,6 +3,7 @@ package main
 import (
 	"backend/controllers"
 	"backend/db"
+	"backend/middleware"
 	"context"
 	"log"
 	"os"
@@ -72,6 +73,9 @@ func main() {
 	auth.POST("/login", authController.Login)
 	auth.POST("/refresh", authController.Refresh)
 	auth.POST("/logout", authController.Logout)
+
+	users := controllers.NewUserController(pool)
+	r.GET("/users/me", middleware.RequireAuth, users.Me)
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	r.Run()

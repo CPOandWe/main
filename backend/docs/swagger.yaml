@@ -19,6 +19,17 @@ definitions:
     - email
     - password
     type: object
+  models.MeResponse:
+    properties:
+      email:
+        type: string
+      role:
+        type: string
+      user_id:
+        type: string
+      username:
+        type: string
+    type: object
   models.SignUpBody:
     properties:
       email:
@@ -122,4 +133,21 @@ paths:
       summary: Регистрация
       tags:
       - Auth
+  /users/me:
+    get:
+      description: Данные авторизованного пользователя (по access-токену из cookie)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.MeResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Текущий пользователь
+      tags:
+      - Users
 swagger: "2.0"
