@@ -153,9 +153,79 @@
                     }
                 }
             }
+        },
+        "/users/{id}/role": {
+            "patch": {
+                "description": "Меняет роль пользователя (только Admin). Снятие модератора — выдача роли user",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Смена роли",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID пользователя",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Новая роль",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ChangeRoleBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Роль изменена"
+                    },
+                    "400": {
+                        "description": "Invalid request, unknown role or own role",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "models.ChangeRoleBody": {
+            "type": "object",
+            "required": [
+                "role_id"
+            ],
+            "properties": {
+                "role_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.ErrorResponse": {
             "type": "object",
             "properties": {

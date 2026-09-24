@@ -21,3 +21,7 @@ type MeResponse struct {
 	Email    string `json:"email"`
 	Role     string `json:"role"`
 }
+
+type ChangeRoleBody struct {
+	RoleID int16 `json:"role_id" validate:"required"`
+}

@@ -7,11 +7,11 @@ CREATE TABLE
 CREATE UNIQUE INDEX IF NOT EXISTS roles_name_key ON roles (name);
 
 INSERT INTO
-    roles (name)
+    roles (role_id, name)
 VALUES
-    ('user'),
-    ('moderator'),
-    ('admin') ON CONFLICT (name) DO NOTHING;
+    (1, 'user'),
+    (2, 'moderator'),
+    (3, 'admin') ON CONFLICT (name) DO NOTHING;
 
 CREATE TABLE
     IF NOT EXISTS users (

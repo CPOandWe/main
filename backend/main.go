@@ -76,6 +76,7 @@ func main() {
 
 	users := controllers.NewUserController(pool)
 	r.GET("/users/me", middleware.RequireAuth, users.Me)
+	r.PATCH("/users/:id/role", middleware.RequireAuth, middleware.RequireRole(pool, "admin"), users.ChangeRole)
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	r.Run()

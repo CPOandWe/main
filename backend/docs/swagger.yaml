@@ -1,5 +1,12 @@
 basePath: /
 definitions:
+  models.ChangeRoleBody:
+    properties:
+      role_id:
+        type: integer
+    required:
+    - role_id
+    type: object
   models.ErrorResponse:
     properties:
       errors:
@@ -133,6 +140,46 @@ paths:
       summary: Регистрация
       tags:
       - Auth
+  /users/{id}/role:
+    patch:
+      consumes:
+      - application/json
+      description: Меняет роль пользователя (только Admin). Снятие модератора — выдача
+        роли user
+      parameters:
+      - description: ID пользователя
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Новая роль
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ChangeRoleBody'
+      responses:
+        "204":
+          description: Роль изменена
+        "400":
+          description: Invalid request, unknown role or own role
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Смена роли
+      tags:
+      - Users
   /users/me:
     get:
       description: Данные авторизованного пользователя (по access-токену из cookie)
