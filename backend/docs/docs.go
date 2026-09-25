@@ -1880,6 +1880,13 @@ const docTemplate = `{
                 "is_public": {
                     "type": "boolean"
                 },
+                "reading_status": {
+                    "type": "string"
+                },
+                "saved_at": {
+                    "description": "library fields: null for guests and for books the user has not saved",
+                    "type": "string"
+                },
                 "title": {
                     "type": "string"
                 }
@@ -2005,6 +2012,9 @@ const docTemplate = `{
                 },
                 "is_public": {
                     "type": "boolean"
+                },
+                "saved_at": {
+                    "type": "string"
                 },
                 "status": {
                     "type": "string"
@@ -2222,6 +2232,12 @@ const docTemplate = `{
                 },
                 "is_public": {
                     "type": "boolean"
+                },
+                "reading_status": {
+                    "type": "string"
+                },
+                "saved_at": {
+                    "type": "string"
                 },
                 "status": {
                     "type": "string"

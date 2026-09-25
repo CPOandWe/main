@@ -101,7 +101,7 @@ func main() {
 	r.DELETE("/authors/:id", append(moderator, dicts.DeleteAuthor)...)
 
 	books := controllers.NewBookController(pool)
-	r.GET("/books", books.List)
+	r.GET("/books", middleware.OptionalAuth, books.List)
 	r.GET("/books/:id", middleware.OptionalAuth, books.Get)
 	r.GET("/books/:id/cover", middleware.OptionalAuth, books.GetCover)
 	r.PUT("/books/:id/cover", middleware.RequireAuth, books.UploadCover)

@@ -131,15 +131,19 @@ func (ctrl *BookController) List(c *gin.Context) {
 
 	rows, err := ctrl.pool.Query(c.Request.Context(),
 		`SELECT b.book_id, b.title, b.description, b.is_public, CASE WHEN b.cover_path <> '' THEN '/books/' || b.book_id::text || '/cover' END AS cover_url,
-			        `+authorsSQL+` AS authors
+			        `+authorsSQL+` AS authors,
+			        ul.added_at AS saved_at, bs.status AS reading_status
 			 FROM books b
+			 LEFT JOIN user_library ul ON ul.book_id = b.book_id AND ul.user_id = NULLIF($7::text, '')::uuid
+			 LEFT JOIN book_status bs ON bs.book_id = b.book_id AND bs.user_id = ul.user_id
 		 WHERE b.is_public
 		   AND ($1::text = '' OR b.title ILIKE '%' || $1 || '%')
 		   AND ($2::uuid IS NULL OR EXISTS (SELECT 1 FROM book_authors ba WHERE ba.book_id = b.book_id AND ba.author_id = $2))
 		   AND ($3::uuid IS NULL OR b.language_id = $3)
 		   AND ($4::uuid IS NULL OR EXISTS (SELECT 1 FROM book_topics bt WHERE bt.book_id = b.book_id AND bt.topic_id = $4))
 		 ORDER BY b.title, b.book_id LIMIT $5 OFFSET $6`,
-		likeEscaper.Replace(c.Query("q")), author, language, topic, booksPageSize, (page-1)*booksPageSize)
+		likeEscaper.Replace(c.Query("q")), author, language, topic, booksPageSize, (page-1)*booksPageSize,
+		c.GetString(middleware.UserIDKey))
 	if err != nil {
 		internalErr(c, err)
 		return
@@ -175,9 +179,14 @@ func (ctrl *BookController) Get(c *gin.Context) {
 	err := ctrl.pool.QueryRow(c.Request.Context(),
 		`SELECT b.book_id, b.title, b.description, b.is_public,
 		        CASE WHEN b.cover_path <> '' THEN '/books/' || b.book_id::text || '/cover' END,
-		        `+authorsSQL+`
-		 FROM books b WHERE b.book_id = $1`, id,
-	).Scan(&book.BookID, &book.Title, &book.Description, &book.IsPublic, &book.CoverURL, &book.Authors)
+		        `+authorsSQL+`,
+		        ul.added_at, bs.status
+		 FROM books b
+		 LEFT JOIN user_library ul ON ul.book_id = b.book_id AND ul.user_id = NULLIF($2::text, '')::uuid
+		 LEFT JOIN book_status bs ON bs.book_id = b.book_id AND bs.user_id = ul.user_id
+		 WHERE b.book_id = $1`, id, c.GetString(middleware.UserIDKey),
+	).Scan(&book.BookID, &book.Title, &book.Description, &book.IsPublic, &book.CoverURL, &book.Authors,
+		&book.SavedAt, &book.ReadingStatus)
 	if err != nil {
 		internalErr(c, err)
 		return
@@ -203,13 +212,16 @@ func (ctrl *BookController) UploadedBooks(c *gin.Context) {
 	}
 
 	rows, err := ctrl.pool.Query(c.Request.Context(),
-		`SELECT book_id, title, description, is_public, cover_url, authors, status FROM (
+		`SELECT book_id, title, description, is_public, cover_url, authors, status, saved_at, reading_status FROM (
 		   SELECT b.book_id, b.title, b.description, b.is_public,
 		          CASE WHEN b.cover_path <> '' THEN '/books/' || b.book_id::text || '/cover' END AS cover_url,
 		          CASE WHEN b.is_public THEN 'published' ELSE COALESCE(r.status, 'draft') END AS status,
 		          `+authorsSQL+` AS authors,
+		          ul.added_at AS saved_at, bs.status AS reading_status,
 		          b.uploaded_at
 		   FROM books b
+		   LEFT JOIN user_library ul ON ul.book_id = b.book_id AND ul.user_id = $1
+		   LEFT JOIN book_status bs ON bs.book_id = b.book_id AND bs.user_id = $1
 		   LEFT JOIN LATERAL (SELECT status FROM book_add_requests WHERE book_id = b.book_id ORDER BY created_at DESC LIMIT 1) r ON TRUE
 		   WHERE b.uploaded_by = $1
 		 ) x
@@ -249,6 +261,7 @@ func (ctrl *BookController) MyBooks(c *gin.Context) {
 		`SELECT b.book_id, b.title, b.description, b.is_public,
 		        CASE WHEN b.cover_path <> '' THEN '/books/' || b.book_id::text || '/cover' END AS cover_url,
 		        bs.status,
+		        ul.added_at AS saved_at,
 		        `+authorsSQL+` AS authors
 		 FROM user_library ul
 		 JOIN books b USING (book_id)

@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type Book struct {
 	BookID      string   `json:"book_id" db:"book_id"`
 	Title       string   `json:"title" db:"title"`
@@ -7,6 +9,9 @@ type Book struct {
 	IsPublic    bool     `json:"is_public" db:"is_public"`
 	CoverURL    *string  `json:"cover_url" db:"cover_url"` // null when the book has no cover
 	Authors     []Author `json:"authors" db:"authors"`
+	// library fields: null for guests and for books the user has not saved
+	SavedAt       *time.Time `json:"saved_at" db:"saved_at"`
+	ReadingStatus *string    `json:"reading_status" db:"reading_status"`
 }
 
 type CreateBookBody struct {
@@ -56,24 +61,27 @@ type ReviewRequestResponse struct {
 
 // UploadedBook is a book uploaded by the user with its moderation status.
 type UploadedBook struct {
-	BookID      string   `json:"book_id" db:"book_id"`
-	Title       string   `json:"title" db:"title"`
-	Description string   `json:"description" db:"description"`
-	IsPublic    bool     `json:"is_public" db:"is_public"`
-	CoverURL    *string  `json:"cover_url" db:"cover_url"`
-	Authors     []Author `json:"authors" db:"authors"`
-	Status      string   `json:"status" db:"status"`
+	BookID        string     `json:"book_id" db:"book_id"`
+	Title         string     `json:"title" db:"title"`
+	Description   string     `json:"description" db:"description"`
+	IsPublic      bool       `json:"is_public" db:"is_public"`
+	CoverURL      *string    `json:"cover_url" db:"cover_url"`
+	Authors       []Author   `json:"authors" db:"authors"`
+	Status        string     `json:"status" db:"status"`
+	SavedAt       *time.Time `json:"saved_at" db:"saved_at"`
+	ReadingStatus *string    `json:"reading_status" db:"reading_status"`
 }
 
 // LibraryBook is a library entry; Status is the reading status (nil until set).
 type LibraryBook struct {
-	BookID      string   `json:"book_id" db:"book_id"`
-	Title       string   `json:"title" db:"title"`
-	Description string   `json:"description" db:"description"`
-	IsPublic    bool     `json:"is_public" db:"is_public"`
-	CoverURL    *string  `json:"cover_url" db:"cover_url"`
-	Authors     []Author `json:"authors" db:"authors"`
-	Status      *string  `json:"status" db:"status"`
+	BookID      string    `json:"book_id" db:"book_id"`
+	Title       string    `json:"title" db:"title"`
+	Description string    `json:"description" db:"description"`
+	IsPublic    bool      `json:"is_public" db:"is_public"`
+	CoverURL    *string   `json:"cover_url" db:"cover_url"`
+	Authors     []Author  `json:"authors" db:"authors"`
+	Status      *string   `json:"status" db:"status"`
+	SavedAt     time.Time `json:"saved_at" db:"saved_at"`
 }
 
 type ReadingStatusBody struct {
