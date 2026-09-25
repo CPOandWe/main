@@ -1861,6 +1861,12 @@ const docTemplate = `{
         "models.Book": {
             "type": "object",
             "properties": {
+                "authors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Author"
+                    }
+                },
                 "book_id": {
                     "type": "string"
                 },
@@ -1914,15 +1920,19 @@ const docTemplate = `{
         "models.CreateBookBody": {
             "type": "object",
             "required": [
-                "author_id",
+                "author_ids",
                 "description",
                 "language_id",
                 "published_at",
                 "title"
             ],
             "properties": {
-                "author_id": {
-                    "type": "string"
+                "author_ids": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "description": {
                     "type": "string"
@@ -1978,6 +1988,12 @@ const docTemplate = `{
         "models.LibraryBook": {
             "type": "object",
             "properties": {
+                "authors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Author"
+                    }
+                },
                 "book_id": {
                     "type": "string"
                 },
@@ -2162,8 +2178,13 @@ const docTemplate = `{
         "models.UpdateBookBody": {
             "type": "object",
             "properties": {
-                "author_id": {
-                    "type": "string"
+                "author_ids": {
+                    "description": "replaces the whole author list",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "description": {
                     "type": "string",
@@ -2184,6 +2205,12 @@ const docTemplate = `{
         "models.UploadedBook": {
             "type": "object",
             "properties": {
+                "authors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Author"
+                    }
+                },
                 "book_id": {
                     "type": "string"
                 },

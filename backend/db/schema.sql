@@ -70,7 +70,6 @@ CREATE TABLE
         book_id UUID PRIMARY KEY DEFAULT uuidv4 (),
         title VARCHAR NOT NULL,
         description TEXT NOT NULL,
-        author_id UUID NOT NULL REFERENCES authors (author_id),
         language_id UUID NOT NULL REFERENCES languages (language_id),
         published_at DATE NOT NULL,
         is_public BOOLEAN NOT NULL DEFAULT FALSE,
@@ -79,6 +78,27 @@ CREATE TABLE
         uploaded_at DATE NOT NULL,
         uploaded_by UUID NOT NULL REFERENCES users (user_id)
     );
+
+CREATE TABLE
+    IF NOT EXISTS book_authors (
+        book_id UUID NOT NULL REFERENCES books (book_id),
+        author_id UUID NOT NULL REFERENCES authors (author_id),
+        PRIMARY KEY (book_id, author_id)
+    );
+
+-- move the old single books.author_id into book_authors (runs once, then the column is gone)
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'books' AND column_name = 'author_id'
+    ) THEN
+        INSERT INTO book_authors (book_id, author_id)
+        SELECT book_id, author_id FROM books
+        ON CONFLICT DO NOTHING;
+        ALTER TABLE books DROP COLUMN author_id;
+    END IF;
+END $$;
 
 CREATE TABLE
     IF NOT EXISTS book_topics (

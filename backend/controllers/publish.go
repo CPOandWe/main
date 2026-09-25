@@ -282,10 +282,10 @@ func (ctrl *BookController) Publish(c *gin.Context) {
 func (ctrl *BookController) ModerationList(c *gin.Context) {
 	rows, err := ctrl.pool.Query(c.Request.Context(),
 		`SELECT r.request_id, b.book_id, b.title, b.description, b.is_public,
-		        a.first_name || ' ' || a.last_name AS author
+		        COALESCE((SELECT string_agg(a.first_name || ' ' || a.last_name, ', ' ORDER BY a.last_name, a.first_name)
+		                  FROM book_authors ba JOIN authors a USING (author_id) WHERE ba.book_id = b.book_id), '') AS author
 		 FROM book_add_requests r
 		 JOIN books b USING (book_id)
-		 JOIN authors a USING (author_id)
 		 WHERE r.status = 'pending'
 		 ORDER BY r.created_at`)
 	if err != nil {

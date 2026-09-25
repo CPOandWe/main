@@ -23,6 +23,10 @@ definitions:
     type: object
   models.Book:
     properties:
+      authors:
+        items:
+          $ref: '#/definitions/models.Author'
+        type: array
       book_id:
         type: string
       cover_url:
@@ -58,8 +62,11 @@ definitions:
     type: object
   models.CreateBookBody:
     properties:
-      author_id:
-        type: string
+      author_ids:
+        items:
+          type: string
+        minItems: 1
+        type: array
       description:
         type: string
       language_id:
@@ -69,7 +76,7 @@ definitions:
       title:
         type: string
     required:
-    - author_id
+    - author_ids
     - description
     - language_id
     - published_at
@@ -101,6 +108,10 @@ definitions:
     type: object
   models.LibraryBook:
     properties:
+      authors:
+        items:
+          $ref: '#/definitions/models.Author'
+        type: array
       book_id:
         type: string
       cover_url:
@@ -222,8 +233,12 @@ definitions:
     type: object
   models.UpdateBookBody:
     properties:
-      author_id:
-        type: string
+      author_ids:
+        description: replaces the whole author list
+        items:
+          type: string
+        minItems: 1
+        type: array
       description:
         minLength: 1
         type: string
@@ -237,6 +252,10 @@ definitions:
     type: object
   models.UploadedBook:
     properties:
+      authors:
+        items:
+          $ref: '#/definitions/models.Author'
+        type: array
       book_id:
         type: string
       cover_url:
