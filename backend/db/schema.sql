@@ -131,3 +131,42 @@ ADD COLUMN IF NOT EXISTS cover_path VARCHAR NOT NULL DEFAULT '';
 CREATE UNIQUE INDEX IF NOT EXISTS book_add_requests_pending_key ON book_add_requests (book_id)
 WHERE
     status = 'pending';
+
+
+CREATE UNIQUE INDEX IF NOT EXISTS languages_name_key ON languages (name);
+
+CREATE UNIQUE INDEX IF NOT EXISTS topics_name_key ON topics (name);
+
+INSERT INTO
+    languages (name)
+VALUES
+    ('Русский'),
+    ('Английский'),
+    ('Немецкий'),
+    ('Французский'),
+    ('Испанский'),
+    ('Итальянский'),
+    ('Китайский'),
+    ('Японский') ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO
+    topics (name)
+VALUES
+    ('Фантастика'),
+    ('Фэнтези'),
+    ('Детектив'),
+    ('Триллер'),
+    ('Ужасы'),
+    ('Роман'),
+    ('Приключения'),
+    ('Историческая проза'),
+    ('Классика'),
+    ('Поэзия'),
+    ('Научная литература'),
+    ('Научно-популярная литература'),
+    ('Биография и мемуары'),
+    ('Бизнес и экономика'),
+    ('Психология'),
+    ('Программирование и IT'),
+    ('Детская литература'),
+    ('Юмор') ON CONFLICT (name) DO NOTHING;

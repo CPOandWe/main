@@ -1,5 +1,14 @@
 basePath: /
 definitions:
+  models.Author:
+    properties:
+      author_id:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+    type: object
   models.Book:
     properties:
       book_id:
@@ -61,6 +70,13 @@ definitions:
           type: string
         type: object
       message:
+        type: string
+    type: object
+  models.Language:
+    properties:
+      language_id:
+        type: string
+      name:
         type: string
     type: object
   models.LibraryBook:
@@ -160,6 +176,13 @@ definitions:
   models.SignUpResponse:
     properties:
       user_id:
+        type: string
+    type: object
+  models.Topic:
+    properties:
+      name:
+        type: string
+      topic_id:
         type: string
     type: object
   models.UpdateBookBody:
@@ -276,6 +299,20 @@ paths:
       summary: Регистрация
       tags:
       - Auth
+  /authors:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Author'
+            type: array
+      summary: Список авторов
+      tags:
+      - Dictionaries
   /books:
     get:
       description: Публичные книги с фильтрами и поиском по названию, по 20 на страницу
@@ -671,6 +708,20 @@ paths:
       summary: Статус книги
       tags:
       - Books
+  /languages:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Language'
+            type: array
+      summary: Список языков
+      tags:
+      - Dictionaries
   /moderation/requests:
     get:
       description: Открытые заявки, старые первыми (только Moderator+)
@@ -737,6 +788,20 @@ paths:
       summary: Решение по заявке
       tags:
       - Book requests
+  /topics:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Topic'
+            type: array
+      summary: Список жанров
+      tags:
+      - Dictionaries
   /users/{id}/role:
     patch:
       consumes:

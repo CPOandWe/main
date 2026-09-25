@@ -78,6 +78,11 @@ func main() {
 	r.GET("/users/me", middleware.RequireAuth, users.Me)
 	r.PATCH("/users/:id/role", middleware.RequireAuth, middleware.RequireRole(pool, "admin"), users.ChangeRole)
 
+	dicts := controllers.NewDictionaryController(pool)
+	r.GET("/topics", dicts.Topics)
+	r.GET("/authors", dicts.Authors)
+	r.GET("/languages", dicts.Languages)
+
 	books := controllers.NewBookController(pool)
 	r.GET("/books", books.List)
 	r.GET("/books/:id", middleware.OptionalAuth, books.Get)

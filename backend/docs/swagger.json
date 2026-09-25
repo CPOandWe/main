@@ -128,6 +128,28 @@
                 }
             }
         },
+        "/authors": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dictionaries"
+                ],
+                "summary": "Список авторов",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Author"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/books": {
             "get": {
                 "description": "Публичные книги с фильтрами и поиском по названию, по 20 на страницу",
@@ -713,6 +735,28 @@
                 }
             }
         },
+        "/languages": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dictionaries"
+                ],
+                "summary": "Список языков",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Language"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/moderation/requests": {
             "get": {
                 "description": "Открытые заявки, старые первыми (только Moderator+)",
@@ -808,6 +852,28 @@
                         "description": "Pending request not found",
                         "schema": {
                             "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/topics": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dictionaries"
+                ],
+                "summary": "Список жанров",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Topic"
+                            }
                         }
                     }
                 }
@@ -1107,6 +1173,20 @@
         }
     },
     "definitions": {
+        "models.Author": {
+            "type": "object",
+            "properties": {
+                "author_id": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Book": {
             "type": "object",
             "properties": {
@@ -1197,6 +1277,17 @@
                     }
                 },
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Language": {
+            "type": "object",
+            "properties": {
+                "language_id": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }
@@ -1347,6 +1438,17 @@
             "type": "object",
             "properties": {
                 "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Topic": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "topic_id": {
                     "type": "string"
                 }
             }

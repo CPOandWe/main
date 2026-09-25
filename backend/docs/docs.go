@@ -135,6 +135,28 @@ const docTemplate = `{
                 }
             }
         },
+        "/authors": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dictionaries"
+                ],
+                "summary": "Список авторов",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Author"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/books": {
             "get": {
                 "description": "Публичные книги с фильтрами и поиском по названию, по 20 на страницу",
@@ -720,6 +742,28 @@ const docTemplate = `{
                 }
             }
         },
+        "/languages": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dictionaries"
+                ],
+                "summary": "Список языков",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Language"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/moderation/requests": {
             "get": {
                 "description": "Открытые заявки, старые первыми (только Moderator+)",
@@ -815,6 +859,28 @@ const docTemplate = `{
                         "description": "Pending request not found",
                         "schema": {
                             "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/topics": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dictionaries"
+                ],
+                "summary": "Список жанров",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Topic"
+                            }
                         }
                     }
                 }
@@ -1114,6 +1180,20 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.Author": {
+            "type": "object",
+            "properties": {
+                "author_id": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Book": {
             "type": "object",
             "properties": {
@@ -1204,6 +1284,17 @@ const docTemplate = `{
                     }
                 },
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Language": {
+            "type": "object",
+            "properties": {
+                "language_id": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }
@@ -1354,6 +1445,17 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Topic": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "topic_id": {
                     "type": "string"
                 }
             }
