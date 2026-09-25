@@ -78,10 +78,26 @@ func main() {
 	r.GET("/users/me", middleware.RequireAuth, users.Me)
 	r.PATCH("/users/:id/role", middleware.RequireAuth, middleware.RequireRole(pool, "admin"), users.ChangeRole)
 
+	moderator := []gin.HandlerFunc{middleware.RequireAuth, middleware.RequireRole(pool, "moderator")}
+
 	dicts := controllers.NewDictionaryController(pool)
 	r.GET("/topics", dicts.Topics)
-	r.GET("/authors", dicts.Authors)
+	r.GET("/topics/:id", dicts.Topic)
+	r.POST("/topics", append(moderator, dicts.CreateTopic)...)
+	r.PUT("/topics/:id", append(moderator, dicts.UpdateTopic)...)
+	r.DELETE("/topics/:id", append(moderator, dicts.DeleteTopic)...)
+
 	r.GET("/languages", dicts.Languages)
+	r.GET("/languages/:id", dicts.Language)
+	r.POST("/languages", append(moderator, dicts.CreateLanguage)...)
+	r.PUT("/languages/:id", append(moderator, dicts.UpdateLanguage)...)
+	r.DELETE("/languages/:id", append(moderator, dicts.DeleteLanguage)...)
+
+	r.GET("/authors", dicts.Authors)
+	r.GET("/authors/:id", dicts.Author)
+	r.POST("/authors", middleware.RequireAuth, dicts.CreateAuthor)
+	r.PUT("/authors/:id", append(moderator, dicts.UpdateAuthor)...)
+	r.DELETE("/authors/:id", append(moderator, dicts.DeleteAuthor)...)
 
 	books := controllers.NewBookController(pool)
 	r.GET("/books", books.List)
@@ -93,7 +109,6 @@ func main() {
 	r.GET("/books/:id/status", middleware.OptionalAuth, books.Status)
 	r.POST("/books/:id/publish-request", middleware.RequireAuth, books.RequestPublish)
 
-	moderator := []gin.HandlerFunc{middleware.RequireAuth, middleware.RequireRole(pool, "moderator")}
 	r.POST("/books/:id/publish", append(moderator, books.Publish)...)
 	r.GET("/moderation/requests", append(moderator, books.ModerationList)...)
 	r.PATCH("/moderation/requests/:id", append(moderator, books.ModerationReview)...)

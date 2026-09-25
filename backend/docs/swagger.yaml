@@ -9,6 +9,18 @@ definitions:
       last_name:
         type: string
     type: object
+  models.AuthorBody:
+    properties:
+      first_name:
+        maxLength: 200
+        type: string
+      last_name:
+        maxLength: 200
+        type: string
+    required:
+    - first_name
+    - last_name
+    type: object
   models.Book:
     properties:
       book_id:
@@ -78,6 +90,14 @@ definitions:
         type: string
       name:
         type: string
+    type: object
+  models.LanguageBody:
+    properties:
+      name:
+        maxLength: 200
+        type: string
+    required:
+    - name
     type: object
   models.LibraryBook:
     properties:
@@ -184,6 +204,14 @@ definitions:
         type: string
       topic_id:
         type: string
+    type: object
+  models.TopicBody:
+    properties:
+      name:
+        maxLength: 200
+        type: string
+    required:
+    - name
     type: object
   models.UpdateBookBody:
     properties:
@@ -312,7 +340,129 @@ paths:
             type: array
       summary: Список авторов
       tags:
-      - Dictionaries
+      - Authors
+    post:
+      consumes:
+      - application/json
+      description: 'Доступно любому авторизованному пользователю: автор нужен при
+        добавлении книги'
+      parameters:
+      - description: Автор
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.AuthorBody'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Author'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Создание автора (User+)
+      tags:
+      - Authors
+  /authors/{id}:
+    delete:
+      parameters:
+      - description: ID автора
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Удалено
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "409":
+          description: Used by books
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Удаление автора (Moderator+)
+      tags:
+      - Authors
+    get:
+      parameters:
+      - description: ID автора
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Author'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Автор
+      tags:
+      - Authors
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID автора
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Автор
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.AuthorBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Author'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Изменение автора (Moderator+)
+      tags:
+      - Authors
   /books:
     get:
       description: Публичные книги с фильтрами и поиском по названию, по 20 на страницу
@@ -721,7 +871,139 @@ paths:
             type: array
       summary: Список языков
       tags:
-      - Dictionaries
+      - Languages
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Язык
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.LanguageBody'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Language'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "409":
+          description: Already exists
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Создание языка (Moderator+)
+      tags:
+      - Languages
+  /languages/{id}:
+    delete:
+      parameters:
+      - description: ID языка
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Удалено
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "409":
+          description: Used by books
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Удаление языка (Moderator+)
+      tags:
+      - Languages
+    get:
+      parameters:
+      - description: ID языка
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Language'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Язык
+      tags:
+      - Languages
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID языка
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Язык
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.LanguageBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Language'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "409":
+          description: Already exists
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Изменение языка (Moderator+)
+      tags:
+      - Languages
   /moderation/requests:
     get:
       description: Открытые заявки, старые первыми (только Moderator+)
@@ -801,7 +1083,139 @@ paths:
             type: array
       summary: Список жанров
       tags:
-      - Dictionaries
+      - Topics
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Жанр
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.TopicBody'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Topic'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "409":
+          description: Already exists
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Создание жанра (Moderator+)
+      tags:
+      - Topics
+  /topics/{id}:
+    delete:
+      parameters:
+      - description: ID жанра
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Удалено
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "409":
+          description: Used by books
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Удаление жанра (Moderator+)
+      tags:
+      - Topics
+    get:
+      parameters:
+      - description: ID жанра
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Topic'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Жанр
+      tags:
+      - Topics
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID жанра
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Жанр
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.TopicBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Topic'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "409":
+          description: Already exists
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Изменение жанра (Moderator+)
+      tags:
+      - Topics
   /users/{id}/role:
     patch:
       consumes:
