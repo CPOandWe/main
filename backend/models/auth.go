@@ -25,3 +25,10 @@ type MeResponse struct {
 type ChangeRoleBody struct {
 	RoleID int16 `json:"role_id" validate:"required"`
 }
+
+type UserListItem struct {
+	UserID   string `json:"user_id" db:"user_id"`
+	Username string `json:"username" db:"username"`
+	Email    string `json:"email" db:"email"`
+	Role     string `json:"role" db:"role"`
+}

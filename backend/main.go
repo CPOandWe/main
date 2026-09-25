@@ -76,6 +76,7 @@ func main() {
 
 	users := controllers.NewUserController(pool)
 	r.GET("/users/me", middleware.RequireAuth, users.Me)
+	r.GET("/users", middleware.RequireAuth, middleware.RequireRole(pool, "admin"), users.List)
 	r.PATCH("/users/:id/role", middleware.RequireAuth, middleware.RequireRole(pool, "admin"), users.ChangeRole)
 
 	moderator := []gin.HandlerFunc{middleware.RequireAuth, middleware.RequireRole(pool, "moderator")}

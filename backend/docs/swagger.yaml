@@ -243,6 +243,17 @@ definitions:
       title:
         type: string
     type: object
+  models.UserListItem:
+    properties:
+      email:
+        type: string
+      role:
+        type: string
+      user_id:
+        type: string
+      username:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -1216,6 +1227,47 @@ paths:
       summary: Изменение жанра (Moderator+)
       tags:
       - Topics
+  /users:
+    get:
+      description: 'Только Admin. Фильтры: role, поиск q по имени и почте; по 20 на
+        страницу'
+      parameters:
+      - description: user, moderator или admin
+        in: query
+        name: role
+        type: string
+      - description: Поиск по username и email
+        in: query
+        name: q
+        type: string
+      - description: Страница, с 1
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.UserListItem'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Список пользователей
+      tags:
+      - Users
   /users/{id}/role:
     patch:
       consumes:
