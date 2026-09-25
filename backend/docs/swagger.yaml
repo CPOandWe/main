@@ -129,7 +129,7 @@ definitions:
       email:
         type: string
       role:
-        type: string
+        $ref: '#/definitions/models.Role'
       user_id:
         type: string
       username:
@@ -178,6 +178,13 @@ definitions:
         type: string
       status:
         type: string
+    type: object
+  models.Role:
+    properties:
+      name:
+        type: string
+      role_id:
+        type: integer
     type: object
   models.SignUpBody:
     properties:
@@ -248,7 +255,7 @@ definitions:
       email:
         type: string
       role:
-        type: string
+        $ref: '#/definitions/models.Role'
       user_id:
         type: string
       username:

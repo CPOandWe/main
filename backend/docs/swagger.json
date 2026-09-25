@@ -2013,7 +2013,7 @@
                     "type": "string"
                 },
                 "role": {
-                    "type": "string"
+                    "$ref": "#/definitions/models.Role"
                 },
                 "user_id": {
                     "type": "string"
@@ -2087,6 +2087,17 @@
                 },
                 "status": {
                     "type": "string"
+                }
+            }
+        },
+        "models.Role": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "role_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -2193,7 +2204,7 @@
                     "type": "string"
                 },
                 "role": {
-                    "type": "string"
+                    "$ref": "#/definitions/models.Role"
                 },
                 "user_id": {
                     "type": "string"

@@ -19,7 +19,7 @@ type MeResponse struct {
 	UserID   string `json:"user_id"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
-	Role     string `json:"role"`
+	Role     Role   `json:"role"`
 }
 
 type ChangeRoleBody struct {
@@ -30,5 +30,10 @@ type UserListItem struct {
 	UserID   string `json:"user_id" db:"user_id"`
 	Username string `json:"username" db:"username"`
 	Email    string `json:"email" db:"email"`
-	Role     string `json:"role" db:"role"`
+	Role     Role   `json:"role" db:"role"`
+}
+
+type Role struct {
+	RoleID int16  `json:"role_id"`
+	Name   string `json:"name"`
 }

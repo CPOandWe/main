@@ -32,7 +32,7 @@ func NewUserController(pool *pgxpool.Pool) *UserController {
 func (ctrl *UserController) Me(c *gin.Context) {
 	var me models.MeResponse
 	err := ctrl.pool.QueryRow(c.Request.Context(),
-		`SELECT u.user_id, u.username, u.email, r.name
+		`SELECT u.user_id, u.username, u.email, json_build_object('role_id', r.role_id, 'name', r.name)
 		 FROM users u JOIN roles r USING (role_id)
 		 WHERE u.user_id = $1`, c.GetString(middleware.UserIDKey),
 	).Scan(&me.UserID, &me.Username, &me.Email, &me.Role)
@@ -129,7 +129,7 @@ func (ctrl *UserController) List(c *gin.Context) {
 	}
 
 	rows, err := ctrl.pool.Query(c.Request.Context(),
-		`SELECT u.user_id, u.username, u.email, r.name AS role
+		`SELECT u.user_id, u.username, u.email, json_build_object('role_id', r.role_id, 'name', r.name) AS role
 		 FROM users u JOIN roles r USING (role_id)
 		 WHERE ($1::text = '' OR r.name = $1)
 		   AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR u.email ILIKE '%' || $2 || '%')
